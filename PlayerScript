@@ -1,0 +1,104 @@
+using System.Collections.Generic;
+using UnityEngine;
+
+public class PlayerScript : MonoBehaviour
+{
+    public Transform Camera;
+    public Transform home;
+    public Animator animator;
+    public Rigidbody2D rb;
+    public List<BattleScript> team;
+    public int selectedMove;
+    public bool inBattle = false;
+    public float speed;
+
+    //0 idle, 1 left, 2 right, 3 up, 4 down
+    int direction = 0;
+    // Start is called once before the first execution of Update after the MonoBehaviour is created
+    void Start()
+    {
+        
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        //left
+        if(Input.GetKeyDown(KeyCode.A))
+        {
+            direction = 1;
+        }
+        if(Input.GetKeyUp(KeyCode.A) && direction == 1)
+        {
+            direction = 0;
+        }
+        //right
+        if(Input.GetKeyDown(KeyCode.D))
+        {
+            direction = 2;
+        }
+        if(Input.GetKeyUp(KeyCode.D) && direction == 2)
+        {
+            direction = 0;
+        }
+        //up
+        if(Input.GetKeyDown(KeyCode.W))
+        {
+            direction = 3;
+        }
+        if(Input.GetKeyUp(KeyCode.W) && direction == 3)
+        {
+            direction = 0;
+        }
+        //down
+        if(Input.GetKeyDown(KeyCode.S))
+        {
+            direction = 4;
+        }
+        if(Input.GetKeyUp(KeyCode.S) && direction == 4)
+        {
+            direction = 0;
+        }
+
+        animator.SetFloat("Direction", direction);
+
+        switch(direction)
+        {
+            case 0:
+                rb.linearVelocity = new Vector2(0, 0);
+                break;
+            case 1:
+                rb.linearVelocity = new Vector2(-1*speed, 0);
+                break;
+            case 2:
+                rb.linearVelocity = new Vector2(speed, 0);
+                break;
+            case 3:
+                rb.linearVelocity = new Vector2(0, speed);
+                break;
+            case 4:
+                rb.linearVelocity = new Vector2(0, -1*speed);
+                break;
+        }
+
+        Camera.position = new Vector3(gameObject.transform.position.x, gameObject.transform.position.y, -10);
+    }
+
+    public void SelectedMove(int num)
+    {
+        selectedMove = num;
+    }
+
+    public void EndBattle()
+    {
+        inBattle = false;
+    }
+
+    public void HealAll()
+    {
+        for(int i = 0; i < team.Count; i++)
+        {
+            team[i].health = team[i].maxHealth;
+        }
+    }
+}
