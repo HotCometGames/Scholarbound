@@ -1,0 +1,361 @@
+using UnityEditor.Scripting;
+using UnityEngine;
+using TMPro;
+using System.Collections;
+using UnityEngine.UI;
+using System.Collections.Generic;
+
+public class BattleOperatorScript : MonoBehaviour
+{
+    public PlayerScript playerScript;
+    public QuestionScript questionScript;
+    public List<BattleScript> playerTeam;
+    public int currentPlayer = 0;
+    public int playerMana = 2;
+    public List<BattleScript> opponentTeam;
+    public int currentOpponent = 0;
+    public int opponentMana = 2;
+    public GameObject TurnUI;
+    public GameObject TextUI;
+    public TextMeshProUGUI Text;
+    public GameObject PickMonsterUI;
+    public GameObject PlayerWinUI;
+    public GameObject PlayerLossesUI;
+    public GameObject FightUI;
+    public GameObject QuestionUI;
+    public GameObject PlayerBattleInfo;
+    public GameObject OpponentBattleInfo;
+    public bool free = false;
+    // Start is called once before the first execution of Update after the MonoBehaviour is created
+    void Start()
+    {
+        
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        
+    }
+
+    public void StartBattle(WildMonsterScript wildMonsterScript)
+    {
+        playerTeam = playerScript.team;
+        currentPlayer = 0;
+        playerMana = 2;
+        opponentTeam = wildMonsterScript.team;
+        currentOpponent = 0;
+        opponentMana = 2;
+        TurnSelected();
+        PlayerBattleInfo.SetActive(true);
+        OpponentBattleInfo.SetActive(true);
+    }
+
+    public void TurnSelected()
+    {
+        TurnUI.SetActive(true);
+        SetPlayerBattleInfo();
+        SetOpponetBattleInfo();
+    }
+
+    public void CheckForStart()
+    {
+        int moveUsed = playerTeam[currentPlayer].moves[playerScript.selectedMove];
+        int manaNeeded = MoveKey(moveUsed).mana;
+
+        if(playerTeam[currentPlayer].moves[playerScript.selectedMove] >= manaNeeded)
+        {
+            TurnUI.SetActive(false);
+            FightUI.SetActive(false);
+            //need to create opponentUI
+            StartCoroutine(TurnStart(moveUsed, opponentTeam[currentOpponent].moves[0]));
+
+        }
+    }
+
+    public void Switch(int switchNum)
+    {
+        if(switchNum < playerTeam.Count && (playerMana > 0 || free))
+        {
+            if(playerTeam[switchNum].health > 0)
+            {
+                currentPlayer = switchNum;
+                if(!free)
+                {
+                    playerMana--;
+                } else {
+                    free = false;
+                }
+                PickMonsterUI.SetActive(false);
+                TurnUI.SetActive(true);
+            }
+        }
+        SetPlayerBattleInfo();
+    }
+
+    IEnumerator TurnStart(int playerMoveUsed, int opponentMoveUsed)
+    {
+        if(playerTeam[currentPlayer].speed >= opponentTeam[currentOpponent].speed)
+        {
+            float playerDamage = Attack(playerMoveUsed, playerTeam[currentPlayer], opponentTeam[currentOpponent], true);
+            opponentTeam[currentOpponent].health-=playerDamage;
+            MoveInformation playerMoveInformation = MoveKey(playerMoveUsed);
+            //say what happened
+            TextUI.SetActive(true);
+            Text.text = playerTeam[currentPlayer].name + " used " + playerMoveInformation.name + "! It did " + playerDamage + " damage! Opponent is at " + opponentTeam[currentOpponent].health;
+            
+            SetPlayerBattleInfo();
+            SetOpponetBattleInfo();
+
+            bool clicked = false;
+            while(!clicked){
+                yield return null;
+                if(Input.GetKeyDown(KeyCode.Mouse0))
+                {
+                    clicked = true;
+                }
+            }
+            clicked = false;
+            TextUI.SetActive(false);
+
+            if(opponentTeam[currentOpponent].health <= 0)
+            {
+                StartCoroutine(OpponentKnocked());
+                yield break;
+            }
+
+            float opponentDamage = Attack(opponentMoveUsed, opponentTeam[currentOpponent], playerTeam[currentPlayer], false);
+            playerTeam[currentPlayer].health-=opponentDamage;
+            MoveInformation opponentMoveInformation = MoveKey(opponentMoveUsed);
+            //say what happened
+            TextUI.SetActive(true);
+            Text.text = "Opponent used " + opponentMoveInformation.name + "! It did " + opponentDamage + " damage! Player is at " + playerTeam[currentPlayer].health;
+
+            SetPlayerBattleInfo();
+            SetOpponetBattleInfo();
+
+            while(!clicked){
+                yield return null;
+                if(Input.GetKeyDown(KeyCode.Mouse0))
+                {
+                    clicked = true;
+                }
+            }
+            TextUI.SetActive(false);
+
+            if(playerTeam[currentPlayer].health <= 0)
+            {
+                StartCoroutine(PlayerKnocked());
+                yield break;
+            }
+        } else {
+            float opponentDamage = Attack(opponentMoveUsed, opponentTeam[currentOpponent], playerTeam[currentPlayer], false);
+            playerTeam[currentPlayer].health-=opponentDamage;
+            MoveInformation opponentMoveInformation = MoveKey(opponentMoveUsed);
+            //say what happened
+            TextUI.SetActive(true);
+            Text.text = "Opponent used " + opponentMoveInformation.name + "! It did " + opponentDamage + " damage! Player is at " + playerTeam[currentPlayer].health;
+
+            SetPlayerBattleInfo();
+            SetOpponetBattleInfo();
+
+            bool clicked = false;
+            while(!clicked){
+                yield return null;
+                if(Input.GetKeyDown(KeyCode.Mouse0))
+                {
+                    clicked = true;
+                }
+            }
+            TextUI.SetActive(false);
+            clicked = false;
+
+            if(playerTeam[currentPlayer].health <= 0)
+            {
+                StartCoroutine(PlayerKnocked());
+                yield break;
+            }
+
+            float playerDamage = Attack(playerMoveUsed, playerTeam[currentPlayer], opponentTeam[currentOpponent], true);
+            opponentTeam[currentOpponent].health-=playerDamage;
+            MoveInformation playerMoveInformation = MoveKey(playerMoveUsed);
+            //say what happened
+            TextUI.SetActive(true);
+            Text.text = "Player used " + playerMoveInformation.name + "! It did " + playerDamage + " damage! Opponent is at " + opponentTeam[currentOpponent].health;
+            
+            SetPlayerBattleInfo();
+            SetOpponetBattleInfo();
+
+            while(!clicked){
+                yield return null;
+                if(Input.GetKeyDown(KeyCode.Mouse0))
+                {
+                    clicked = true;
+                }
+            }
+            TextUI.SetActive(false);
+
+            if(opponentTeam[currentOpponent].health <= 0)
+            {
+                StartCoroutine(OpponentKnocked());
+                yield break;
+            }
+        }
+        AnswerQuestions();
+    }
+
+    void AnswerQuestions()
+    {
+        QuestionUI.SetActive(true);
+        questionScript.GetNewQuestion();
+        questionScript.questionsAnswered = 0;
+        questionScript.answersCorrect = 0;
+    }
+
+    void SetPlayerBattleInfo()
+    {
+        foreach(Transform child in PlayerBattleInfo.transform)
+            {
+                if(child.name == "Sprite")
+                {
+                    child.GetComponent<Image>().sprite = playerTeam[currentPlayer].sprite;
+                }
+                if(child.name == "Name")
+                {
+                    child.GetComponent<TextMeshProUGUI>().text = playerTeam[currentPlayer].name;
+                }
+                if(child.name == "Health")
+                {
+                    child.GetComponent<TextMeshProUGUI>().text = "Health: " + playerTeam[currentPlayer].health.ToString() + "/" + playerTeam[currentPlayer].maxHealth.ToString();
+                }
+                if(child.name == "Mana")
+                {
+                    child.GetComponent<TextMeshProUGUI>().text = "Mana: " + playerMana + "/4";
+                }
+            }
+    }
+
+    void SetOpponetBattleInfo()
+    {
+        foreach(Transform child in OpponentBattleInfo.transform)
+            {
+                if(child.name == "Sprite")
+                {
+                    child.GetComponent<Image>().sprite = opponentTeam[currentOpponent].sprite;
+                }
+                if(child.name == "Name")
+                {
+                    child.GetComponent<TextMeshProUGUI>().text = opponentTeam[currentOpponent].name;
+                }
+                if(child.name == "Health")
+                {
+                    child.GetComponent<TextMeshProUGUI>().text = "Health: " + opponentTeam[currentOpponent].health.ToString() + "/" + opponentTeam[currentOpponent].maxHealth.ToString();
+                }
+                if(child.name == "Mana")
+                {
+                    child.GetComponent<TextMeshProUGUI>().text = "Mana: " + opponentMana + "/4";
+                }
+            }
+    }
+
+    IEnumerator PlayerKnocked()
+    {
+        TextUI.SetActive(true);
+        Text.text = "Oh no! One of your team members was knockedout!";
+
+        bool clicked = false;
+        while(!clicked){
+            yield return null;
+            if(Input.GetKeyDown(KeyCode.Mouse0))
+            {
+                clicked = true;
+            }
+        }
+        TextUI.SetActive(false);
+        clicked = false;
+
+        for(int i = 0; i < playerTeam.Count; i++)
+        {
+            if(playerTeam[i].health > 0)
+            {
+                PickMonsterUI.SetActive(true);
+                free = true;
+                yield break;
+            }
+        }
+        PlayerLoses();
+    }
+    IEnumerator OpponentKnocked()
+    {
+        TextUI.SetActive(true);
+        Text.text = "One of your opponenets was knocked out!";
+
+        bool clicked = false;
+        while(!clicked){
+            yield return null;
+            if(Input.GetKeyDown(KeyCode.Mouse0))
+            {
+                clicked = true;
+            }
+        }
+        TextUI.SetActive(false);
+        clicked = false;
+
+        if(currentOpponent+1 == opponentTeam.Count)
+        {
+            PlayerWins();
+        } else {
+            currentOpponent++;
+            AnswerQuestions();
+        }
+    }
+
+    void PlayerWins()
+    {
+        PlayerWinUI.SetActive(true);
+        playerScript.inBattle = false;
+        PlayerBattleInfo.SetActive(false);
+        OpponentBattleInfo.SetActive(false);
+        BattleScript newMon = opponentTeam[currentOpponent];
+        newMon.health = newMon.maxHealth;
+        playerScript.team.Add(newMon);
+    }
+
+    void PlayerLoses()
+    {
+        PlayerLossesUI.SetActive(true);
+        playerScript.inBattle = false;
+        PlayerBattleInfo.SetActive(false);
+        OpponentBattleInfo.SetActive(false);
+    }
+
+    float Attack(int moveUsed, BattleScript user, BattleScript opposer, bool player)
+    {
+        switch(moveUsed)
+            {
+                case 1:
+                    float impact = user.strength*MoveKey(1).damage;
+                    float damage = impact/(opposer.defense*2.5f);
+                    if(player)
+                    {
+                        playerMana--;
+                    }
+                    return damage;
+            }
+        return 0;
+    }
+
+    MoveInformation MoveKey(int move)
+    {
+        switch(move)
+        {
+            case 1:
+                MoveInformation moveInformation = new MoveInformation();
+                moveInformation.name = "Pound";
+                moveInformation.damage = 20;
+                moveInformation.mana = 1;
+                return moveInformation;
+        }
+        return new MoveInformation();
+    }
+}
