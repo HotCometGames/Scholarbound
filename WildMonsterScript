@@ -1,0 +1,33 @@
+using System.Collections.Generic;
+using UnityEngine;
+
+public class WildMonsterScript : MonoBehaviour
+{
+    public BattleOperatorScript battleOperatorScript;
+    public List<BattleScript> team;
+    
+    // Start is called once before the first execution of Update after the MonoBehaviour is created
+    void Start()
+    {
+        
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        
+    }
+
+    void OnCollisionEnter2D(Collision2D collision)
+    {
+        Debug.Log("Collide");
+        if(collision.gameObject.name == "Player")
+        {
+            if(!collision.gameObject.GetComponent<PlayerScript>().inBattle)
+            {
+                battleOperatorScript.StartBattle(this);
+                collision.gameObject.GetComponent<PlayerScript>().inBattle = true;
+            }
+        }
+    }
+}
