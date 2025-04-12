@@ -1,0 +1,86 @@
+using TMPro;
+using UnityEditor.Animations;
+using UnityEditor.XR;
+using UnityEngine;
+
+public class FightUIScript : MonoBehaviour
+{
+    public BattleOperatorScript battleOperatorScript;
+    public PlayerScript playerScript;
+    public BattleScript currentPlayer;
+    public GameObject[] moves;
+    // Start is called once before the first execution of Update after the MonoBehaviour is created
+    void Start()
+    {
+        
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        
+    }
+
+    public void SetUpMoves()
+    {
+        currentPlayer = playerScript.team[battleOperatorScript.currentPlayer];
+        for(int i = 0; i < moves.Length; i++)
+        {
+            if(i < currentPlayer.moves.Length)
+            {
+                MoveInformation moveInformation = MoveKey(currentPlayer.moves[i]);
+                foreach(Transform child in moves[i].transform)
+                {
+                    if(child.name == "Name")
+                    {
+                        child.GetComponent<TextMeshProUGUI>().enabled = true;
+                        child.GetComponent<TextMeshProUGUI>().text = moveInformation.name;
+                    }
+                    if(child.name == "Damage")
+                    {
+                        child.GetComponent<TextMeshProUGUI>().enabled = true;
+                        child.GetComponent<TextMeshProUGUI>().text = "Damage: " + moveInformation.damage.ToString();
+                    }
+                    if(child.name == "Mana")
+                    {
+                        child.GetComponent<TextMeshProUGUI>().enabled = true;
+                        child.GetComponent<TextMeshProUGUI>().text = "Mana: " + moveInformation.mana.ToString();
+                    }
+                }
+            } else {
+                foreach(Transform child in moves[i].transform)
+                {
+                    child.GetComponent<TextMeshProUGUI>().enabled = false;
+                }
+            }
+        }
+    }
+
+
+    MoveInformation MoveKey(int move)
+    {
+        MoveInformation moveInformation = new MoveInformation();
+        switch(move)
+        {
+            case 0:
+                moveInformation.name = "Sit";
+                moveInformation.damage = 0;
+                moveInformation.mana = 0;
+                return moveInformation;
+            case 1:
+                
+                moveInformation.name = "Pound";
+                moveInformation.damage = 20;
+                moveInformation.mana = 1;
+                return moveInformation;
+        }
+        return new MoveInformation();
+    }
+}
+
+public class MoveInformation
+{
+    public string name;
+    public int damage;
+    public int mana;
+}
