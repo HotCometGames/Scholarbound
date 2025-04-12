@@ -1,0 +1,73 @@
+using System.Collections.Generic;
+using TMPro;
+using UnityEngine;
+using UnityEngine.UI;
+
+public class PickUIScript : MonoBehaviour
+{
+    public PlayerScript playerScript;
+    public List<BattleScript> team;
+    public GameObject[] options;
+    // Start is called once before the first execution of Update after the MonoBehaviour is created
+    void Start()
+    {
+        
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        
+    }
+
+    public void SetUpSwitch()
+    {
+        team = playerScript.team;
+        for(int i = 0; i < options.Length; i++)
+        {
+            if(i < team.Count)
+            {
+                foreach(Transform child in options[i].transform)
+                {
+                    if(child.name == "Name")
+                    {
+                        child.GetComponent<TextMeshProUGUI>().enabled = true;
+                        child.GetComponent<TextMeshProUGUI>().text = team[i].name0;
+                    }
+                    if(child.name == "Health")
+                    {
+                        if (team[i].health>0)
+                        {
+                            child.GetComponent<TextMeshProUGUI>().enabled = true;
+                            child.GetComponent<TextMeshProUGUI>().text = "Health: " + team[i].health.ToString();
+                        } else {
+                            child.GetComponent<TextMeshProUGUI>().enabled = true;
+                            child.GetComponent<TextMeshProUGUI>().text = "Dead";
+                        }
+                    }
+                    if(child.name == "Sprite")
+                    {
+                        child.GetComponent<Image>().enabled = true;
+                        child.GetComponent<Image>().sprite = team[i].sprite;
+                    }
+                }
+            } else {
+                foreach(Transform child in options[i].transform)
+                {
+                    if(child.name == "Name")
+                    {
+                        child.GetComponent<TextMeshProUGUI>().enabled = false;
+                    }
+                    if(child.name == "Health")
+                    {
+                        child.GetComponent<TextMeshProUGUI>().enabled = false;
+                    }
+                    if(child.name == "Sprite")
+                    {
+                        child.GetComponent<Image>().enabled = false;
+                    }
+                }
+            }
+        }
+    }
+}
