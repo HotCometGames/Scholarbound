@@ -1,0 +1,26 @@
+using UnityEngine;
+using UnityEngine.UI;
+
+public class BattleScript : MonoBehaviour
+{
+    public string name0;
+    public Sprite sprite;
+    //Stats
+    public float maxHealth;
+    public float health;
+    public float speed;
+    public float strength;
+    public float defense;
+    public int[] moves;
+    // Start is called once before the first execution of Update after the MonoBehaviour is created
+    void Start()
+    {
+        
+    }
+
+    // Update is called once per frame
+    void Update()
+    {
+        
+    }
+}
